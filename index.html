@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="مراقب البطارية: أداة هندسية دقيقة لحساب زمن التشغيل المتبقي.">
+    <title>مراقب البطارية</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.ico">
+
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #e2e8f0; margin: 0; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 500px; background-color: #1e293b; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); padding-bottom: 24px; border: 1px solid #334155; }
+        .header { background: linear-gradient(135deg, #059669, #10b981); color: white; text-align: center; padding: 28px 16px; border-top-left-radius: 24px; border-top-right-radius: 24px; position: relative; overflow: hidden; }
+        .header h1 { margin: 0; font-size: 26px; font-weight: 900; }
+        .header p { margin: 8px 0 0 0; font-size: 14px; font-weight: 600; }
+        .section { padding: 20px 16px; border-bottom: 1px solid #334155; }
+        .section:last-of-type { border-bottom: none; }
+        .section-title { font-size: 15px; font-weight: 700; color: #10b981; margin-top: 0; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; } 
+        .input-group label { font-size: 12px; color: #94a3b8; font-weight: 600; line-height: 1.4; } 
+        input { width: 100%; background-color: #0f172a; border: 1px solid #475569; color: white; padding: 12px; border-radius: 10px; font-size: 14.5px; text-align: center; outline: none; transition: 0.2s; font-weight: 600; direction: ltr; font-family: Arial, sans-serif; }
+        input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+        input::placeholder { color: #94a3b8 !important; opacity: 1 !important; font-size: 13.5px; font-weight: normal; }
+        .custom-select-wrapper { position: relative; width: 100%; user-select: none; }
+        .custom-select-display { background-color: #0f172a; border: 1px solid #475569; color: white; padding: 12px; border-radius: 10px; font-size: 13.5px; text-align: center; cursor: pointer; display: flex; justify-content: center; align-items: center; position: relative; font-weight: 600; transition: 0.2s; }
+        .custom-select-display:active { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25); }
+        .dropdown-arrow { position: absolute; left: 16px; font-size: 10px; color: #94a3b8; }
+        .custom-select-options { display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background-color: #1e293b; border: 1px solid #334155; border-radius: 10px; z-index: 100; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .custom-select-options.show { display: block; animation: fadeIn 0.2s; }
+        .custom-option { padding: 12px; color: #e2e8f0; font-size: 13px; text-align: center; cursor: pointer; border-bottom: 1px solid #334155; transition: 0.2s; }
+        .custom-option:last-child { border-bottom: none; }
+        .custom-option:hover { background-color: #0f172a; color: #10b981; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .time-display-container { background: #0f172a; border: 2px solid #1e293b; border-radius: 20px; padding: 24px; text-align: center; margin-bottom: 16px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); }
+        .time-label { color: #94a3b8; font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block; }
+        .time-value { font-size: 44px; font-weight: 900; color: #10b981; font-family: Arial, sans-serif; direction: ltr; display: flex; justify-content: center; align-items: baseline; gap: 8px; line-height: 1; }
+        .time-unit { font-size: 16px; color: #64748b; font-weight: 600; }
+        .results-details { background-color: #0f172a; border-radius: 12px; padding: 6px; }
+        .result-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #1e293b; }
+        .result-row:last-child { border-bottom: none; }
+        .result-label { font-size: 12.5px; color: #94a3b8; font-weight: 500; }
+        .result-value { font-weight: 700; font-size: 14px; direction: ltr; }
+        .value-amber { color: #f59e0b; } .value-blue { color: #38bdf8; } .value-green { color: #10b981; }
+        .btn-reset { width: calc(100% - 32px); background-color: #dc2626; color: white; margin: 20px auto 0 auto; display: block; font-size: 14px; font-weight: 700; padding: 14px; border-radius: 12px; cursor: pointer; border: none; }
+        .solar-footer { background-color: #0f172a; text-align: center; padding: 24px 16px; margin-top: 24px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;}
+        .copyright-text { font-size: 14px; margin: 0 0 12px 0; color: #e2e8f0; }
+        .author-name { color: #10b981; font-weight: 700; }
+        .social-links { display: flex; justify-content: center; gap: 16px; }
+        .social-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; color: white; text-decoration: none; transition: transform 0.2s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); }
+        .social-btn:hover { transform: scale(1.1); }
+        .whatsapp { background-color: #25D366; }
+        .facebook { background-color: #1877F2; }
+        .social-btn svg { width: 18px; height: 18px; fill: currentColor; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🔋 مراقب البطارية</h1>
+        <p>حساب دقيق لزمن التشغيل المتبقي</p>
+    </div>
+
+    <div class="section" style="padding-bottom: 0;">
+        <div class="time-display-container">
+            <span class="time-label">زمن التشغيل المتوقع للحمل</span>
+            <div class="time-value" id="displayTime">
+                00 <span class="time-unit">ساعة</span> 
+                00 <span class="time-unit">دقيقة</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">⚙️ مواصفات التخزين (البطارية):</div>
+        <div class="grid-inputs">
+            <div class="input-group">
+                <label>جهد النظام الكلي (V):</label>
+                <div class="custom-select-wrapper" id="sysVoltWrapper">
+                    <div class="custom-select-display" onclick="toggleDropdown('sysVoltDropdown')">
+                        <span id="sysVoltDisplay">48</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </div>
+                    <div class="custom-select-options" id="sysVoltDropdown">
+                        <div class="custom-option" onclick="selectSysVolt(12)">12</div>
+                        <div class="custom-option" onclick="selectSysVolt(24)">24</div>
+                        <div class="custom-option" onclick="selectSysVolt(48)">48</div>
+                    </div>
+                    <input type="hidden" id="sysVolt" value="48">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>الجهد الفعلي للبطارية (V):</label>
+                <input type="number" id="singleVolt" placeholder="مثال: 12 أو 51.2" oninput="calculateRuntime()">
+            </div>
+            <div class="input-group">
+                <label>سعة البطارية (Ah):</label>
+                <input type="number" id="singleAh" placeholder="مثال: 100" oninput="calculateRuntime()">
+            </div>
+            <div class="input-group">
+                <label>العدد الكلي للبطاريات:</label>
+                <input type="number" id="battCount" placeholder="مثال: 1" oninput="calculateRuntime()">
+            </div>
+            <div class="input-group">
+                <label>نسبة الشحن الحالية (% SoC):</label>
+                <input type="number" id="battSoc" placeholder="مثال: 77" min="1" max="100" oninput="calculateRuntime()">
+            </div>
+            <div class="input-group">
+                <label>نوع وتفريغ البطارية (DoD):</label>
+                <div class="custom-select-wrapper" id="dodWrapper">
+                    <div class="custom-select-display" onclick="toggleDropdown('dodDropdown')">
+                        <span id="dodDisplay">ليثيوم (90%)</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </div>
+                    <div class="custom-select-options" id="dodDropdown">
+                        <div class="custom-option" onclick="selectDoD(0.9, 'ليثيوم (90%)')">ليثيوم Lithium (آمن 90%)</div>
+                        <div class="custom-option" onclick="selectDoD(0.8, 'ليثيوم (80%)')">ليثيوم Lithium (آمن 80%)</div>
+                        <div class="custom-option" onclick="selectDoD(0.5, 'جل / أسيد (50%)')">جل / أسيد (آمن 50%)</div>
+                    </div>
+                    <input type="hidden" id="battType" value="0.9">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">⚡ الاستهلاك والتحويل:</div>
+        <div class="grid-inputs">
+            <div class="input-group">
+                <label>حمل الأجهزة بالواط (W):</label>
+                <input type="number" id="loadWatts" placeholder="مثال: 500" oninput="calculateRuntime()">
+            </div>
+            <div class="input-group">
+                <label>قدرة استهلاك الإنفرتر (W):</label>
+                <input type="number" id="invCons" placeholder="مثال: 50" oninput="calculateRuntime()">
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📊 تحليل الطاقة الفعلي</div>
+        <div class="results-details">
+            <div class="result-row">
+                <div class="result-label">مخزون الطاقة الكلي:</div>
+                <div class="result-value value-blue" id="resTotalKwh">0.00 kWh</div>
+            </div>
+            <div class="result-row">
+                <div class="result-label">الطاقة المتبقية للاستخدام:</div>
+                <div class="result-value value-green" id="resUsableKwh">0.00 kWh</div>
+            </div>
+            <div class="result-row">
+                <div class="result-label">تيار السحب من البطارية:</div>
+                <div class="result-value value-amber" id="resDrawAmps">0 A</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-reset" onclick="resetData()">⚠️ تصفير البيانات</button>
+
+    <footer class="solar-footer">
+        <p class="copyright-text">تصميم وتطوير <span class="author-name">مازن العوذلي</span> &copy; 2026</p>
+        <p class="tagline">تطبيق حاسبة ومراقب البطارية</p>
+        <div class="social-links">
+            <a href="https://wa.me/message/BSOAV5RVXBNQP1" target="_blank" class="social-btn whatsapp"><svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.966C16.528 1.975 14.067 1.053 12 1.053c-5.438 0-9.864 4.373-9.868 9.803-.001 1.714.453 3.39 1.317 4.873L2.43 21.48l5.857-1.534zM16.71 14.65c-.259-.13-1.534-.759-1.773-.846-.239-.087-.413-.13-.587.13-.174.26-.674.846-.826 1.018-.152.173-.304.195-.563.065-.259-.13-1.096-.404-2.088-1.292-.771-.69-1.292-1.542-1.444-1.802-.152-.26-.016-.4.114-.53.117-.117.259-.304.39-.455.13-.152.174-.26.26-.433.087-.173.043-.325-.022-.455-.065-.13-.587-1.413-.804-1.944-.213-.518-.447-.448-.607-.456-.157-.008-.337-.01-.517-.01-.18 0-.474.067-.72.337-.247.271-.943.924-.943 2.255s.967 2.61 1.101 2.784c.134.173 1.902 2.904 4.609 4.07.644.277 1.148.443 1.541.568.647.206 1.236.177 1.701.108.519-.077 1.534-.627 1.751-1.234.217-.607.217-1.127.152-1.234-.064-.108-.239-.173-.499-.303z"/></svg></a>
+            <a href="https://www.facebook.com/share/1YF9n8KTFK/" target="_blank" class="social-btn facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+        </div>
+    </footer>
+</div>
+
+<script>
+!function(){
+    document.addEventListener("contextmenu", function(e){ e.preventDefault() });
+    document.addEventListener("keydown", function(e){
+        if(e.key==="F12" || (e.ctrlKey && e.shiftKey && (e.key==="I" || e.key==="J")) || (e.ctrlKey && (e.key==="U" || e.key==="S" || e.key==="C"))){
+            e.preventDefault();
+            return false;
+        }
+    });
+}();
+
+// ⚡ كود استدعاء الـ Service Worker المطابق تماماً للحاسبة المحترفة
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+            console.log('PWA Service Worker Registered Successfully', reg);
+        }).catch(err => console.error('Service Worker Registration Failed', err));
+    });
+}
+
+document.addEventListener('focusin', function(e) {
+    if (e.target && e.target.tagName === 'INPUT' && (e.target.type === 'number' || e.target.type === 'text')) {
+        e.target.select();
+    }
+});
+
+function toggleDropdown(id) {
+    const dropdowns = document.getElementsByClassName("custom-select-options");
+    for (let i = 0; i < dropdowns.length; i++) {
+        if (dropdowns[i].id !== id && dropdowns[i].classList.contains('show')) {
+            dropdowns[i].classList.remove('show');
+        }
+    }
+    document.getElementById(id).classList.toggle('show');
+}
+
+function selectDoD(value, text) {
+    document.getElementById('battType').value = value;
+    document.getElementById('dodDisplay').innerText = text;
+    document.getElementById('dodDropdown').classList.remove('show');
+    calculateRuntime();
+}
+
+function selectSysVolt(value) {
+    document.getElementById('sysVolt').value = value;
+    document.getElementById('sysVoltDisplay').innerText = value;
+    document.getElementById('sysVoltDropdown').classList.remove('show');
+    calculateRuntime();
+}
+
+window.onclick = function(event) {
+    if (!event.target.closest('.custom-select-wrapper')) {
+        const dropdowns = document.getElementsByClassName("custom-select-options");
+        for (let i = 0; i < dropdowns.length; i++) {
+            if (dropdowns[i].classList.contains('show')) {
+                dropdowns[i].classList.remove('show');
+            }
+        }
+    }
+}
+
+function calculateRuntime() {
+    const sysVolt = parseFloat(document.getElementById('sysVolt').value) || 0;
+    const singleVolt = parseFloat(document.getElementById('singleVolt').value) || 0;
+    const singleAh = parseFloat(document.getElementById('singleAh').value) || 0;
+    const battCount = parseFloat(document.getElementById('battCount').value) || 0;
+    const dod = parseFloat(document.getElementById('battType').value) || 0.9;
+    let soc = parseFloat(document.getElementById('battSoc').value) || 0;
+
+    if (soc > 100) { soc = 100; document.getElementById('battSoc').value = 100; }
+
+    const loadW = parseFloat(document.getElementById('loadWatts').value) || 0;
+    const invCons = parseFloat(document.getElementById('invCons').value) || 0;
+
+    const totalWh = singleVolt * singleAh * battCount;
+    
+    const socDecimal = soc / 100;
+    const minSocAllowed = 1 - dod;
+    const usableSoc = Math.max(0, socDecimal - minSocAllowed);
+    const usableWh = totalWh * usableSoc;
+
+    const totalLoadOnBattery = loadW + invCons;
+
+    document.getElementById('resTotalKwh').innerText = (totalWh / 1000).toFixed(2) + ' kWh';
+    document.getElementById('resUsableKwh').innerText = (usableWh / 1000).toFixed(2) + ' kWh';
+    
+    const drawAmps = (totalLoadOnBattery > 0 && sysVolt > 0) ? totalLoadOnBattery / sysVolt : 0;
+    document.getElementById('resDrawAmps').innerText = drawAmps.toFixed(1) + ' A';
+
+    const displayElement = document.getElementById('displayTime');
+    
+    if (totalLoadOnBattery <= 0 || totalWh <= 0 || usableSoc <= 0) {
+        displayElement.innerHTML = `00 <span class="time-unit">ساعة</span> 00 <span class="time-unit">دقيقة</span>`;
+        return;
+    }
+
+    const hoursDecimal = usableWh / totalLoadOnBattery;
+    const hours = Math.floor(hoursDecimal);
+    const minutes = Math.round((hoursDecimal - hours) * 60);
+
+    const formattedHours = hours < 10 ? '0' + hours : hours;
+    const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+
+    displayElement.innerHTML = `${formattedHours} <span class="time-unit">ساعة</span> ${formattedMinutes} <span class="time-unit">دقيقة</span>`;
+}
+
+function resetData() {
+    if(confirm("⚠️ هل أنت متأكد من تصفير جميع البيانات؟")) {
+        document.getElementById('singleVolt').value = ""; 
+        document.getElementById('singleAh').value = "";
+        document.getElementById('battCount').value = "";
+        document.getElementById('battSoc').value = "";
+        document.getElementById('loadWatts').value = "";
+        document.getElementById('invCons').value = "";
+        selectDoD(0.9, 'ليثيوم (90%)');
+        selectSysVolt(48);
+        calculateRuntime();
+    }
+}
+
+window.onload = calculateRuntime;
+</script>
+</body>
+</html>
