@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -59,6 +58,21 @@
         .whatsapp { background-color: #25D366; }
         .facebook { background-color: #1877F2; }
         .social-btn svg { width: 18px; height: 18px; fill: currentColor; }
+        
+        /* تصميم نافذة التأكيد المخصصة */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 1000; justify-content: center; align-items: center; padding: 16px; backdrop-filter: blur(4px); }
+        .modal-overlay.show { display: flex; animation: fadeIn 0.2s; }
+        .modal-content { background: #1e293b; border-radius: 20px; padding: 24px; width: 100%; max-width: 320px; text-align: center; border: 1px solid #334155; box-shadow: 0 15px 30px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.2s; }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+        .modal-icon { font-size: 40px; margin-bottom: 12px; }
+        .modal-title { color: #f59e0b; margin: 0 0 8px 0; font-size: 18px; font-weight: 700; }
+        .modal-text { color: #e2e8f0; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+        .modal-buttons { display: flex; gap: 12px; }
+        .modal-buttons button { flex: 1; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: 0.2s; font-family: inherit; }
+        .btn-cancel { background: #334155; color: white; }
+        .btn-cancel:active { background: #475569; }
+        .btn-confirm { background: #dc2626; color: white; }
+        .btn-confirm:active { background: #ef4444; }
     </style>
 </head>
 <body>
@@ -175,6 +189,19 @@
     </footer>
 </div>
 
+<!-- نافذة التأكيد المخصصة لتصفير البيانات -->
+<div id="customModalOverlay" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-icon">⚠️</div>
+        <h3 class="modal-title">تصفير البيانات</h3>
+        <p class="modal-text">هل أنت متأكد من تصفير جميع البيانات المدخلة؟</p>
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeModal()">إلغاء</button>
+            <button class="btn-confirm" onclick="executeReset()">تأكيد الحذف</button>
+        </div>
+    </div>
+</div>
+
 <script>
 !function(){
     document.addEventListener("contextmenu", function(e){ e.preventDefault() });
@@ -186,7 +213,6 @@
     });
 }();
 
-// ⚡ كود استدعاء الـ Service Worker المطابق تماماً للحاسبة المحترفة
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').then(reg => {
@@ -200,6 +226,45 @@ document.addEventListener('focusin', function(e) {
         e.target.select();
     }
 });
+
+// دوال إدارة الذاكرة المحلية (الحفظ التلقائي)
+function saveToLocalStorage() {
+    const data = {
+        sysVolt: document.getElementById('sysVolt').value,
+        singleVolt: document.getElementById('singleVolt').value,
+        singleAh: document.getElementById('singleAh').value,
+        battCount: document.getElementById('battCount').value,
+        battSoc: document.getElementById('battSoc').value,
+        battType: document.getElementById('battType').value,
+        loadWatts: document.getElementById('loadWatts').value,
+        invCons: document.getElementById('invCons').value,
+        dodDisplayText: document.getElementById('dodDisplay').innerText,
+        sysVoltDisplayText: document.getElementById('sysVoltDisplay').innerText
+    };
+    localStorage.setItem('batteryMonitorData', JSON.stringify(data));
+}
+
+function loadFromLocalStorage() {
+    const savedData = localStorage.getItem('batteryMonitorData');
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            if(data.sysVolt) document.getElementById('sysVolt').value = data.sysVolt;
+            if(data.singleVolt) document.getElementById('singleVolt').value = data.singleVolt;
+            if(data.singleAh) document.getElementById('singleAh').value = data.singleAh;
+            if(data.battCount) document.getElementById('battCount').value = data.battCount;
+            if(data.battSoc) document.getElementById('battSoc').value = data.battSoc;
+            if(data.battType) document.getElementById('battType').value = data.battType;
+            if(data.loadWatts) document.getElementById('loadWatts').value = data.loadWatts;
+            if(data.invCons) document.getElementById('invCons').value = data.invCons;
+            
+            if(data.dodDisplayText) document.getElementById('dodDisplay').innerText = data.dodDisplayText;
+            if(data.sysVoltDisplayText) document.getElementById('sysVoltDisplay').innerText = data.sysVoltDisplayText;
+        } catch (e) {
+            console.error('Error loading data from local storage', e);
+        }
+    }
+}
 
 function toggleDropdown(id) {
     const dropdowns = document.getElementsByClassName("custom-select-options");
@@ -266,6 +331,9 @@ function calculateRuntime() {
 
     const displayElement = document.getElementById('displayTime');
     
+    // حفظ التحديثات للذاكرة المحلية
+    saveToLocalStorage();
+
     if (totalLoadOnBattery <= 0 || totalWh <= 0 || usableSoc <= 0) {
         displayElement.innerHTML = `00 <span class="time-unit">ساعة</span> 00 <span class="time-unit">دقيقة</span>`;
         return;
@@ -281,21 +349,40 @@ function calculateRuntime() {
     displayElement.innerHTML = `${formattedHours} <span class="time-unit">ساعة</span> ${formattedMinutes} <span class="time-unit">دقيقة</span>`;
 }
 
+// دوال التحكم في نافذة التأكيد (المودال)
 function resetData() {
-    if(confirm("⚠️ هل أنت متأكد من تصفير جميع البيانات؟")) {
-        document.getElementById('singleVolt').value = ""; 
-        document.getElementById('singleAh').value = "";
-        document.getElementById('battCount').value = "";
-        document.getElementById('battSoc').value = "";
-        document.getElementById('loadWatts').value = "";
-        document.getElementById('invCons').value = "";
-        selectDoD(0.9, 'ليثيوم (90%)');
-        selectSysVolt(48);
-        calculateRuntime();
-    }
+    document.getElementById('customModalOverlay').classList.add('show');
 }
 
-window.onload = calculateRuntime;
+function closeModal() {
+    document.getElementById('customModalOverlay').classList.remove('show');
+}
+
+function executeReset() {
+    document.getElementById('singleVolt').value = ""; 
+    document.getElementById('singleAh').value = "";
+    document.getElementById('battCount').value = "";
+    document.getElementById('battSoc').value = "";
+    document.getElementById('loadWatts').value = "";
+    document.getElementById('invCons').value = "";
+    
+    document.getElementById('battType').value = 0.9;
+    document.getElementById('dodDisplay').innerText = 'ليثيوم (90%)';
+    document.getElementById('sysVolt').value = 48;
+    document.getElementById('sysVoltDisplay').innerText = '48';
+    
+    // حذف البيانات المحفوظة من الذاكرة المحلية
+    localStorage.removeItem('batteryMonitorData');
+    
+    closeModal();
+    calculateRuntime();
+}
+
+// تحديث الدالة عند التحميل لتشمل استرجاع البيانات
+window.onload = function() {
+    loadFromLocalStorage();
+    calculateRuntime();
+};
 </script>
 </body>
 </html>
