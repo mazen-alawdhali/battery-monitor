@@ -27,7 +27,7 @@
         .input-group label { font-size: 12px; color: #94a3b8; font-weight: 600; line-height: 1.4; } 
         input { width: 100%; height: 46px; background-color: #0f172a; border: 1px solid #475569; color: white; padding: 0 12px; border-radius: 10px; font-size: 14.5px; text-align: center; outline: none; transition: 0.2s; font-weight: 600; direction: ltr; font-family: Arial, sans-serif; }
         input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
-        input::placeholder { color: #94a3b8 !important; opacity: 1 !important; font-size: 13.5px; font-weight: normal; }
+        input::placeholder { color: #94a3b8 !important; opacity: 1 !important; font-size: 13.5px; font-weight: normal; direction: rtl; unicode-bidi: plaintext; }
         .custom-select-wrapper { position: relative; width: 100%; user-select: none; }
         .custom-select-display { width: 100%; height: 46px; background-color: #0f172a; border: 1px solid #475569; color: white; padding: 0 12px; border-radius: 10px; font-size: 13.5px; text-align: center; cursor: pointer; display: flex; justify-content: center; align-items: center; position: relative; font-weight: 600; transition: 0.2s; }
         .custom-select-display:active { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25); }
@@ -148,21 +148,10 @@
                 <input type="number" id="battSoc" placeholder="مثال: 77" min="1" max="100" oninput="calculateRuntime()">
             </div>
 
-            <!-- نوع وتفريغ البطارية -->
+            <!-- نسبة التفريغ المسموحة -->
             <div class="input-group" id="dodGroup">
-                <label>نوع وتفريغ البطارية (DoD):</label>
-                <div class="custom-select-wrapper" id="dodWrapper">
-                    <div class="custom-select-display" onclick="toggleDropdown('dodDropdown')">
-                        <span id="dodDisplay">ليثيوم (90%)</span>
-                        <span class="dropdown-arrow">▼</span>
-                    </div>
-                    <div class="custom-select-options" id="dodDropdown">
-                        <div class="custom-option" onclick="selectDoD(0.9, 'ليثيوم (90%)')">ليثيوم Lithium (آمن 90%)</div>
-                        <div class="custom-option" onclick="selectDoD(0.8, 'ليثيوم (80%)')">ليثيوم Lithium (آمن 80%)</div>
-                        <div class="custom-option" onclick="selectDoD(0.5, 'جل / أسيد (50%)')">جل / أسيد (آمن 50%)</div>
-                    </div>
-                    <input type="hidden" id="battType" value="0.9">
-                </div>
+                <label>نسبة التفريغ المسموحة (% DoD):</label>
+                <input type="number" id="battDod" placeholder="افتراضي (80%)" min="1" max="100" oninput="calculateRuntime()">
             </div>
         </div>
     </div>
@@ -277,13 +266,6 @@ function selectUnit(unit, text) {
     calculateRuntime();
 }
 
-function selectDoD(value, text) {
-    document.getElementById('battType').value = value;
-    document.getElementById('dodDisplay').innerText = text;
-    document.getElementById('dodDropdown').classList.remove('show');
-    calculateRuntime();
-}
-
 function selectSysVolt(value) {
     document.getElementById('sysVolt').value = value;
     document.getElementById('sysVoltDisplay').innerText = value;
@@ -311,10 +293,9 @@ function saveToLocalStorage() {
         singleAh: document.getElementById('singleAh').value,
         battCount: document.getElementById('battCount').value,
         battSoc: document.getElementById('battSoc').value,
-        battType: document.getElementById('battType').value,
+        battDod: document.getElementById('battDod').value,
         loadWatts: document.getElementById('loadWatts').value,
         invCons: document.getElementById('invCons').value,
-        dodDisplayText: document.getElementById('dodDisplay').innerText,
         sysVoltDisplayText: document.getElementById('sysVoltDisplay').innerText
     };
     localStorage.setItem('batteryMonitorData', JSON.stringify(data));
@@ -332,11 +313,10 @@ function loadFromLocalStorage() {
             if(data.singleAh) document.getElementById('singleAh').value = data.singleAh;
             if(data.battCount) document.getElementById('battCount').value = data.battCount;
             if(data.battSoc) document.getElementById('battSoc').value = data.battSoc;
-            if(data.battType) document.getElementById('battType').value = data.battType;
+            if(data.battDod) document.getElementById('battDod').value = data.battDod;
             if(data.loadWatts) document.getElementById('loadWatts').value = data.loadWatts;
             if(data.invCons) document.getElementById('invCons').value = data.invCons;
             
-            if(data.dodDisplayText) document.getElementById('dodDisplay').innerText = data.dodDisplayText;
             if(data.sysVoltDisplayText) document.getElementById('sysVoltDisplay').innerText = data.sysVoltDisplayText;
         } catch (e) {
             console.error('Error loading data from local storage', e);
@@ -349,9 +329,13 @@ function calculateRuntime() {
     const sysVolt = parseFloat(document.getElementById('sysVolt').value) || 48;
     const capVal = parseFloat(document.getElementById('singleAh').value) || 0;
     const battCount = parseFloat(document.getElementById('battCount').value) || 0;
-    const dod = parseFloat(document.getElementById('battType').value) || 0.9;
-    let soc = parseFloat(document.getElementById('battSoc').value) || 0;
+    
+    let dodVal = parseFloat(document.getElementById('battDod').value);
+    if (isNaN(dodVal) || dodVal <= 0) dodVal = 80; // افتراضي 80% إذا كانت الخانة فارغة
+    if (dodVal > 100) { dodVal = 100; document.getElementById('battDod').value = 100; }
+    const dod = dodVal / 100;
 
+    let soc = parseFloat(document.getElementById('battSoc').value) || 0;
     if (soc > 100) { soc = 100; document.getElementById('battSoc').value = 100; }
 
     const loadW = parseFloat(document.getElementById('loadWatts').value) || 0;
@@ -415,11 +399,10 @@ function executeReset() {
     document.getElementById('singleAh').value = "";
     document.getElementById('battCount').value = "";
     document.getElementById('battSoc').value = "";
+    document.getElementById('battDod').value = "";
     document.getElementById('loadWatts').value = "";
     document.getElementById('invCons').value = "";
     
-    document.getElementById('battType').value = 0.9;
-    document.getElementById('dodDisplay').innerText = 'ليثيوم (90%)';
     document.getElementById('sysVolt').value = 48;
     document.getElementById('sysVoltDisplay').innerText = '48';
     
