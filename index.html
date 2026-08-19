@@ -96,8 +96,26 @@
     <div class="section">
         <div class="section-title">⚙️ مواصفات التخزين (البطارية):</div>
         <div class="grid-inputs">
-            <div class="input-group">
-                <label>جهد النظام الكلي (V):</label>
+            <!-- وحدة القياس -->
+            <div class="input-group" id="unitGroup">
+                <label>وحدة القياس:</label>
+                <div class="custom-select-wrapper" id="unitWrapper">
+                    <div class="custom-select-display" onclick="toggleDropdown('unitDropdown')">
+                        <span id="unitDisplay">أمبير (Ah)</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </div>
+                    <div class="custom-select-options" id="unitDropdown">
+                        <div class="custom-option" onclick="selectUnit('Ah', 'أمبير (Ah)')">أمبير (Ah)</div>
+                        <div class="custom-option" onclick="selectUnit('Wh', 'واط (Wh)')">واط (Wh)</div>
+                        <div class="custom-option" onclick="selectUnit('kWh', 'كيلوواط (kWh)')">كيلوواط (kWh)</div>
+                    </div>
+                    <input type="hidden" id="unitType" value="Ah">
+                </div>
+            </div>
+
+            <!-- جهد المنظومة -->
+            <div class="input-group" id="sysVoltGroup">
+                <label>جهد المنظومة (V):</label>
                 <div class="custom-select-wrapper" id="sysVoltWrapper">
                     <div class="custom-select-display" onclick="toggleDropdown('sysVoltDropdown')">
                         <span id="sysVoltDisplay">48</span>
@@ -111,23 +129,27 @@
                     <input type="hidden" id="sysVolt" value="48">
                 </div>
             </div>
-            <div class="input-group">
-                <label>الجهد الفعلي للبطارية (V):</label>
-                <input type="number" id="singleVolt" placeholder="مثال: 12 أو 51.2" oninput="calculateRuntime()">
-            </div>
-            <div class="input-group">
-                <label>سعة البطارية (Ah):</label>
+
+            <!-- سعة البطارية الواحدة -->
+            <div class="input-group" id="capGroup">
+                <label id="capLabel">سعة البطارية الواحدة (Ah):</label>
                 <input type="number" id="singleAh" placeholder="مثال: 100" oninput="calculateRuntime()">
             </div>
+
+            <!-- عدد البطاريات -->
             <div class="input-group">
-                <label>العدد الكلي للبطاريات:</label>
+                <label>عدد البطاريات:</label>
                 <input type="number" id="battCount" placeholder="مثال: 1" oninput="calculateRuntime()">
             </div>
+
+            <!-- نسبة الشحن الحالية -->
             <div class="input-group">
                 <label>نسبة الشحن الحالية (% SoC):</label>
                 <input type="number" id="battSoc" placeholder="مثال: 77" min="1" max="100" oninput="calculateRuntime()">
             </div>
-            <div class="input-group">
+
+            <!-- نوع وتفريغ البطارية -->
+            <div class="input-group" id="dodGroup">
                 <label>نوع وتفريغ البطارية (DoD):</label>
                 <div class="custom-select-wrapper" id="dodWrapper">
                     <div class="custom-select-display" onclick="toggleDropdown('dodDropdown')">
@@ -227,45 +249,6 @@ document.addEventListener('focusin', function(e) {
     }
 });
 
-// دوال إدارة الذاكرة المحلية (الحفظ التلقائي)
-function saveToLocalStorage() {
-    const data = {
-        sysVolt: document.getElementById('sysVolt').value,
-        singleVolt: document.getElementById('singleVolt').value,
-        singleAh: document.getElementById('singleAh').value,
-        battCount: document.getElementById('battCount').value,
-        battSoc: document.getElementById('battSoc').value,
-        battType: document.getElementById('battType').value,
-        loadWatts: document.getElementById('loadWatts').value,
-        invCons: document.getElementById('invCons').value,
-        dodDisplayText: document.getElementById('dodDisplay').innerText,
-        sysVoltDisplayText: document.getElementById('sysVoltDisplay').innerText
-    };
-    localStorage.setItem('batteryMonitorData', JSON.stringify(data));
-}
-
-function loadFromLocalStorage() {
-    const savedData = localStorage.getItem('batteryMonitorData');
-    if (savedData) {
-        try {
-            const data = JSON.parse(savedData);
-            if(data.sysVolt) document.getElementById('sysVolt').value = data.sysVolt;
-            if(data.singleVolt) document.getElementById('singleVolt').value = data.singleVolt;
-            if(data.singleAh) document.getElementById('singleAh').value = data.singleAh;
-            if(data.battCount) document.getElementById('battCount').value = data.battCount;
-            if(data.battSoc) document.getElementById('battSoc').value = data.battSoc;
-            if(data.battType) document.getElementById('battType').value = data.battType;
-            if(data.loadWatts) document.getElementById('loadWatts').value = data.loadWatts;
-            if(data.invCons) document.getElementById('invCons').value = data.invCons;
-            
-            if(data.dodDisplayText) document.getElementById('dodDisplay').innerText = data.dodDisplayText;
-            if(data.sysVoltDisplayText) document.getElementById('sysVoltDisplay').innerText = data.sysVoltDisplayText;
-        } catch (e) {
-            console.error('Error loading data from local storage', e);
-        }
-    }
-}
-
 function toggleDropdown(id) {
     const dropdowns = document.getElementsByClassName("custom-select-options");
     for (let i = 0; i < dropdowns.length; i++) {
@@ -274,6 +257,24 @@ function toggleDropdown(id) {
         }
     }
     document.getElementById(id).classList.toggle('show');
+}
+
+function selectUnit(unit, text) {
+    document.getElementById('unitType').value = unit;
+    document.getElementById('unitDisplay').innerText = text;
+    document.getElementById('unitDropdown').classList.remove('show');
+
+    const capLabel = document.getElementById('capLabel');
+
+    if (unit === 'Ah') {
+        capLabel.innerText = 'سعة البطارية الواحدة (Ah):';
+    } else if (unit === 'kWh') {
+        capLabel.innerText = 'سعة البطارية الواحدة (kWh):';
+    } else {
+        capLabel.innerText = 'سعة البطارية الواحدة (Wh):';
+    }
+    
+    calculateRuntime();
 }
 
 function selectDoD(value, text) {
@@ -301,10 +302,52 @@ window.onclick = function(event) {
     }
 }
 
+// دوال إدارة الذاكرة المحلية (الحفظ التلقائي)
+function saveToLocalStorage() {
+    const data = {
+        unitType: document.getElementById('unitType').value,
+        unitDisplayText: document.getElementById('unitDisplay').innerText,
+        sysVolt: document.getElementById('sysVolt').value,
+        singleAh: document.getElementById('singleAh').value,
+        battCount: document.getElementById('battCount').value,
+        battSoc: document.getElementById('battSoc').value,
+        battType: document.getElementById('battType').value,
+        loadWatts: document.getElementById('loadWatts').value,
+        invCons: document.getElementById('invCons').value,
+        dodDisplayText: document.getElementById('dodDisplay').innerText,
+        sysVoltDisplayText: document.getElementById('sysVoltDisplay').innerText
+    };
+    localStorage.setItem('batteryMonitorData', JSON.stringify(data));
+}
+
+function loadFromLocalStorage() {
+    const savedData = localStorage.getItem('batteryMonitorData');
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            if(data.unitType && data.unitDisplayText) {
+                selectUnit(data.unitType, data.unitDisplayText);
+            }
+            if(data.sysVolt) document.getElementById('sysVolt').value = data.sysVolt;
+            if(data.singleAh) document.getElementById('singleAh').value = data.singleAh;
+            if(data.battCount) document.getElementById('battCount').value = data.battCount;
+            if(data.battSoc) document.getElementById('battSoc').value = data.battSoc;
+            if(data.battType) document.getElementById('battType').value = data.battType;
+            if(data.loadWatts) document.getElementById('loadWatts').value = data.loadWatts;
+            if(data.invCons) document.getElementById('invCons').value = data.invCons;
+            
+            if(data.dodDisplayText) document.getElementById('dodDisplay').innerText = data.dodDisplayText;
+            if(data.sysVoltDisplayText) document.getElementById('sysVoltDisplay').innerText = data.sysVoltDisplayText;
+        } catch (e) {
+            console.error('Error loading data from local storage', e);
+        }
+    }
+}
+
 function calculateRuntime() {
-    const sysVolt = parseFloat(document.getElementById('sysVolt').value) || 0;
-    const singleVolt = parseFloat(document.getElementById('singleVolt').value) || 0;
-    const singleAh = parseFloat(document.getElementById('singleAh').value) || 0;
+    const unit = document.getElementById('unitType') ? document.getElementById('unitType').value : 'Ah';
+    const sysVolt = parseFloat(document.getElementById('sysVolt').value) || 48;
+    const capVal = parseFloat(document.getElementById('singleAh').value) || 0;
     const battCount = parseFloat(document.getElementById('battCount').value) || 0;
     const dod = parseFloat(document.getElementById('battType').value) || 0.9;
     let soc = parseFloat(document.getElementById('battSoc').value) || 0;
@@ -314,12 +357,22 @@ function calculateRuntime() {
     const loadW = parseFloat(document.getElementById('loadWatts').value) || 0;
     const invCons = parseFloat(document.getElementById('invCons').value) || 0;
 
-    const totalWh = singleVolt * singleAh * battCount;
+    let totalWh = 0;
+    if (unit === 'kWh') {
+        totalWh = capVal * 1000 * battCount;
+    } else if (unit === 'Wh') {
+        totalWh = capVal * battCount;
+    } else { // Ah
+        totalWh = sysVolt * capVal * battCount;
+    }
     
     const socDecimal = soc / 100;
     const minSocAllowed = 1 - dod;
     const usableSoc = Math.max(0, socDecimal - minSocAllowed);
-    const usableWh = totalWh * usableSoc;
+    
+    // تطبيق معامل كفاءة النظام الكلي (90% كفاءة / 10% مفقودات)
+    const systemEfficiency = 0.90;
+    const usableWh = (totalWh * usableSoc) * systemEfficiency;
 
     const totalLoadOnBattery = loadW + invCons;
 
@@ -359,7 +412,6 @@ function closeModal() {
 }
 
 function executeReset() {
-    document.getElementById('singleVolt').value = ""; 
     document.getElementById('singleAh').value = "";
     document.getElementById('battCount').value = "";
     document.getElementById('battSoc').value = "";
@@ -371,6 +423,8 @@ function executeReset() {
     document.getElementById('sysVolt').value = 48;
     document.getElementById('sysVoltDisplay').innerText = '48';
     
+    selectUnit('Ah', 'أمبير (Ah)');
+
     // حذف البيانات المحفوظة من الذاكرة المحلية
     localStorage.removeItem('batteryMonitorData');
     
