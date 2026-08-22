@@ -308,6 +308,8 @@ const i18n = {
         copyrightText: 'تصميم وتطوير <span class="author-name">مازن العوذلي</span> &copy; 2026',
         tagline: 'تطبيق حاسبة ومراقب البطارية',
         visitsText: 'عدد زيارات الحاسبة:',
+        offlineText: 'غير متصل',
+        unavailableText: 'غير متاح',
         modalTitle: 'تصفير البيانات',
         modalText: 'هل أنت متأكد من تصفير جميع البيانات المدخلة؟',
         btnCancel: 'إلغاء',
@@ -348,6 +350,8 @@ const i18n = {
         copyrightText: 'Designed & Developed by <span class="author-name">Mazen Al-Awdhali</span> &copy; 2026',
         tagline: 'Battery Calculator & Monitor App',
         visitsText: 'Calculator Visits:',
+        offlineText: 'Offline',
+        unavailableText: 'Unavailable',
         modalTitle: 'Reset Data',
         modalText: 'Are you sure you want to reset all entered data?',
         btnCancel: 'Cancel',
@@ -362,6 +366,7 @@ function toggleLanguage() {
     currentLang = currentLang === 'ar' ? 'en' : 'ar';
     localStorage.setItem('batteryMonitorLang', currentLang);
     applyLanguage();
+    updateVisitorCount();
 }
 
 function applyLanguage() {
@@ -412,26 +417,36 @@ function applyLanguage() {
     selectUnit(unit, true);
 }
 
-// --- دالة الاتصال بالعداد على Vercel API للحاسبة الخاصة بالبطارية ---
+// --- دالة الاتصال بالعداد على Vercel API المحدثة بحالات عدم الاتصال والخطأ ---
 async function updateVisitorCount() {
     const counterElement = document.getElementById('visitCount');
     if (!counterElement) return;
+
+    const langData = i18n[currentLang];
+
+    if (!navigator.onLine) {
+        counterElement.innerText = langData.offlineText;
+        counterElement.style.color = '#f59e0b'; // ذهبي
+        return;
+    }
 
     const apiUrl = 'https://solar-calculator-pro.vercel.app/api/counter?app=battery_calculator';
 
     try {
         const response = await fetch(apiUrl, { method: 'POST' });
+        if (!response.ok) throw new Error("API Error");
         const data = await response.json();
         
-        if (data && data.visits !== undefined) {
-            counterElement.innerText = Number(data.visits).toLocaleString('en-US');
-        } else if (data && data.count !== undefined) {
-            counterElement.innerText = Number(data.count).toLocaleString('en-US');
+        let val = data.visits !== undefined ? data.visits : data.count;
+        if (val !== undefined) {
+            counterElement.innerText = Number(val).toLocaleString('en-US');
+            counterElement.style.color = '#10b981'; // أخضر
         } else {
-            counterElement.innerText = '1';
+            throw new Error("Invalid Data");
         }
     } catch (error) {
-        counterElement.innerText = '1';
+        counterElement.innerText = langData.unavailableText;
+        counterElement.style.color = '#ef4444'; // أحمر
     }
 }
 
@@ -623,6 +638,10 @@ function executeReset() {
     closeModal();
     calculateRuntime();
 }
+
+// الاستماع لتغير حالة الاتصال وتحديث العداد تلقائياً
+window.addEventListener('online', updateVisitorCount);
+window.addEventListener('offline', updateVisitorCount);
 
 window.onload = function() {
     loadFromLocalStorage();
