@@ -67,7 +67,6 @@
         .author-name { color: #10b981; font-weight: 700; }
         .tagline { font-size: 12px; color: #94a3b8; margin: -4px 0 8px 0; font-weight: 500; opacity: 0.85; }
 
-        /* تنسيق عداد الزيارات الخاص بالحاسبة */
         .visitor-counter { font-size: 14px; color: #94a3b8; font-weight: 600; margin-top: 10px; margin-bottom: 14px; }
         .visit-num { color: #10b981; font-weight: 700; margin-left: 4px; }
         html[dir="ltr"] .visit-num { margin-left: 0; margin-right: 4px; }
@@ -366,7 +365,6 @@ function toggleLanguage() {
     currentLang = currentLang === 'ar' ? 'en' : 'ar';
     localStorage.setItem('batteryMonitorLang', currentLang);
     applyLanguage();
-    updateVisitorCount();
 }
 
 function applyLanguage() {
@@ -417,7 +415,6 @@ function applyLanguage() {
     selectUnit(unit, true);
 }
 
-// --- دالة الاتصال بالعداد على Vercel API المحدثة بحالات عدم الاتصال والخطأ ---
 async function updateVisitorCount() {
     const counterElement = document.getElementById('visitCount');
     if (!counterElement) return;
@@ -426,7 +423,7 @@ async function updateVisitorCount() {
 
     if (!navigator.onLine) {
         counterElement.innerText = langData.offlineText;
-        counterElement.style.color = '#f59e0b'; // ذهبي
+        counterElement.style.color = '#f59e0b';
         return;
     }
 
@@ -440,13 +437,13 @@ async function updateVisitorCount() {
         let val = data.visits !== undefined ? data.visits : data.count;
         if (val !== undefined) {
             counterElement.innerText = Number(val).toLocaleString('en-US');
-            counterElement.style.color = '#10b981'; // أخضر
+            counterElement.style.color = '#10b981';
         } else {
             throw new Error("Invalid Data");
         }
     } catch (error) {
         counterElement.innerText = langData.unavailableText;
-        counterElement.style.color = '#ef4444'; // أحمر
+        counterElement.style.color = '#ef4444';
     }
 }
 
@@ -527,15 +524,11 @@ function loadFromLocalStorage() {
         currentLang = savedLang;
     }
     
-    applyLanguage();
-
     const savedData = localStorage.getItem('batteryMonitorData');
     if (savedData) {
         try {
             const data = JSON.parse(savedData);
-            if(data.unitType) {
-                selectUnit(data.unitType, true);
-            }
+            if(data.unitType) document.getElementById('unitType').value = data.unitType;
             if(data.sysVolt) document.getElementById('sysVolt').value = data.sysVolt;
             if(data.singleAh) document.getElementById('singleAh').value = data.singleAh;
             if(data.battCount) document.getElementById('battCount').value = data.battCount;
@@ -549,6 +542,8 @@ function loadFromLocalStorage() {
             console.error('Error loading data from local storage', e);
         }
     }
+
+    applyLanguage();
 }
 
 function calculateRuntime() {
@@ -639,7 +634,6 @@ function executeReset() {
     calculateRuntime();
 }
 
-// الاستماع لتغير حالة الاتصال وتحديث العداد تلقائياً
 window.addEventListener('online', updateVisitorCount);
 window.addEventListener('offline', updateVisitorCount);
 
