@@ -2,7 +2,7 @@
       "relation": ["delegate_permission/common.handle_all_urls"],
       "target": {
         "namespace": "android_app",
-        "package_name": "com.mazen.battery.monitor.pro.twa",
-        "sha256_cert_fingerprints": ["C6:F7:4F:22:33:31:E7:C8:AE:5D:9B:A6:6B:16:00:D9:F4:71:69:78:04:18:DC:A8:04:AE:66:7C:20:3F:25:62"]
+        "package_name": "com.mazen.Battery.Monitor.Pro",
+        "sha256_cert_fingerprints": ["64:6D:33:DB:03:A9:32:42:A4:64:18:1C:23:89:05:80:67:B6:79:C9:19:8A:6A:76:D5:B7:C2:FA:D8:3F:A8:5D"]
       }
     }]
