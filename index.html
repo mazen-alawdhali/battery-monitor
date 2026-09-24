@@ -240,13 +240,13 @@
             <!-- نسبة الشحن الحالية -->
             <div class="input-group">
                 <label id="battSocLabel">نسبة الشحن الحالية (% SoC):</label>
-                <input type="number" id="battSoc" placeholder="مثال: 77" min="1" max="100" oninput="calculateRuntime()">
+                <input type="text" inputmode="numeric" id="battSoc" placeholder="مثال: 77" onfocus="formatPercent(this, true)" onblur="formatPercent(this, false)" oninput="calculateRuntime()">
             </div>
 
             <!-- نسبة التفريغ المسموحة -->
             <div class="input-group" id="dodGroup">
                 <label id="battDodLabel">نسبة التفريغ المسموحة (% DoD):</label>
-                <input type="number" id="battDod" placeholder="افتراضي (80%)" min="1" max="100" oninput="calculateRuntime()">
+                <input type="text" inputmode="numeric" id="battDod" placeholder="افتراضي (80%)" onfocus="formatPercent(this, true)" onblur="formatPercent(this, false)" oninput="calculateRuntime()">
             </div>
         </div>
     </div>
@@ -635,8 +635,14 @@ function loadFromLocalStorage() {
             if(data.sysVolt) document.getElementById('sysVolt').value = data.sysVolt;
             if(data.singleAh) document.getElementById('singleAh').value = data.singleAh;
             if(data.battCount) document.getElementById('battCount').value = data.battCount;
-            if(data.battSoc) document.getElementById('battSoc').value = data.battSoc;
-            if(data.battDod) document.getElementById('battDod').value = data.battDod;
+            if(data.battSoc) {
+                document.getElementById('battSoc').value = data.battSoc;
+                formatPercent(document.getElementById('battSoc'), false);
+            }
+            if(data.battDod) {
+                document.getElementById('battDod').value = data.battDod;
+                formatPercent(document.getElementById('battDod'), false);
+            }
             if(data.loadWatts) document.getElementById('loadWatts').value = data.loadWatts;
             if(data.invCons) document.getElementById('invCons').value = data.invCons;
             
@@ -649,19 +655,33 @@ function loadFromLocalStorage() {
     applyLanguage();
 }
 
+function formatPercent(input, isFocused) {
+    if (!input) return;
+    let val = input.value.replace(/[^\d.]/g, '');
+    if (isFocused) {
+        input.value = val;
+    } else {
+        if (val !== '') {
+            let num = parseFloat(val);
+            if (num > 100) num = 100;
+            input.value = num + '%';
+        }
+    }
+}
+
 function calculateRuntime() {
     const unit = document.getElementById('unitType') ? document.getElementById('unitType').value : 'Ah';
     const sysVolt = parseFloat(document.getElementById('sysVolt').value) || 48;
     const capVal = parseFloat(document.getElementById('singleAh').value) || 0;
     const battCount = parseFloat(document.getElementById('battCount').value) || 0;
     
-    let dodVal = parseFloat(document.getElementById('battDod').value);
+    let dodVal = parseFloat(document.getElementById('battDod').value.replace(/[^\d.]/g, ''));
     if (isNaN(dodVal) || dodVal <= 0) dodVal = 80;
-    if (dodVal > 100) { dodVal = 100; document.getElementById('battDod').value = 100; }
+    if (dodVal > 100) { dodVal = 100; document.getElementById('battDod').value = '100%'; }
     const dod = dodVal / 100;
 
-    let soc = parseFloat(document.getElementById('battSoc').value) || 0;
-    if (soc > 100) { soc = 100; document.getElementById('battSoc').value = 100; }
+    let soc = parseFloat(document.getElementById('battSoc').value.replace(/[^\d.]/g, '')) || 0;
+    if (soc > 100) { soc = 100; document.getElementById('battSoc').value = '100%'; }
 
     const loadW = parseFloat(document.getElementById('loadWatts').value) || 0;
     const invCons = parseFloat(document.getElementById('invCons').value) || 0;
@@ -742,6 +762,8 @@ window.addEventListener('offline', updateVisitorCount);
 
 window.onload = function() {
     loadFromLocalStorage();
+    formatPercent(document.getElementById('battSoc'), false);
+    formatPercent(document.getElementById('battDod'), false);
     calculateRuntime();
     updateVisitorCount();
 };
