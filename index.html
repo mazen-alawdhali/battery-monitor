@@ -240,13 +240,13 @@
             <!-- نسبة الشحن الحالية -->
             <div class="input-group">
                 <label id="battSocLabel">نسبة الشحن الحالية (% SoC):</label>
-                <input type="text" inputmode="numeric" id="battSoc" placeholder="مثال: 77" onfocus="formatPercent(this, true)" onblur="formatPercent(this, false)" oninput="calculateRuntime()">
+                <input type="text" inputmode="numeric" id="battSoc" placeholder="مثال: 77" onfocus="formatPercent(this, true)" onblur="formatPercent(this, false)" oninput="formatPercent(this, true); calculateRuntime()">
             </div>
 
             <!-- نسبة التفريغ المسموحة -->
             <div class="input-group" id="dodGroup">
                 <label id="battDodLabel">نسبة التفريغ المسموحة (% DoD):</label>
-                <input type="text" inputmode="numeric" id="battDod" placeholder="افتراضي (80%)" onfocus="formatPercent(this, true)" onblur="formatPercent(this, false)" oninput="calculateRuntime()">
+                <input type="text" inputmode="numeric" id="battDod" placeholder="افتراضي (80%)" onfocus="formatPercent(this, true)" onblur="formatPercent(this, false)" oninput="formatPercent(this, true); calculateRuntime()">
             </div>
         </div>
     </div>
