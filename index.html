@@ -228,13 +228,13 @@
             <!-- سعة البطارية الواحدة -->
             <div class="input-group" id="capGroup">
                 <label id="capLabel">سعة البطارية الواحدة (Ah):</label>
-                <input type="number" id="singleAh" placeholder="مثال: 100" oninput="calculateRuntime()">
+                <input type="text" inputmode="numeric" id="singleAh" placeholder="مثال: 100">
             </div>
 
             <!-- عدد البطاريات -->
             <div class="input-group">
                 <label id="battCountLabel">عدد البطاريات:</label>
-                <input type="number" id="battCount" placeholder="مثال: 1" oninput="calculateRuntime()">
+                <input type="text" inputmode="numeric" id="battCount" placeholder="مثال: 1">
             </div>
 
             <!-- نسبة الشحن الحالية -->
@@ -256,11 +256,11 @@
         <div class="grid-inputs">
             <div class="input-group">
                 <label id="loadWattsLabel">حمل الأجهزة بالواط (W):</label>
-                <input type="number" id="loadWatts" placeholder="مثال: 500" oninput="calculateRuntime()">
+                <input type="text" inputmode="numeric" id="loadWatts" placeholder="مثال: 500">
             </div>
             <div class="input-group">
                 <label id="invConsLabel">قدرة استهلاك الإنفرتر (W):</label>
-                <input type="number" id="invCons" placeholder="مثال: 50" oninput="calculateRuntime()">
+                <input type="text" inputmode="numeric" id="invCons" placeholder="مثال: 50">
             </div>
         </div>
     </div>
@@ -657,7 +657,8 @@ function loadFromLocalStorage() {
 
 function formatPercent(input, isFocused) {
     if (!input) return;
-    let val = input.value.replace(/[^\d.]/g, '');
+    let raw = input.value.replace(/[٠-٩]/g, d => "0123456789"["٠١٢٣٤٥٦٧٨٩".indexOf(d)]);
+    let val = raw.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').substring(0, 7);
     if (isFocused) {
         input.value = val;
     } else {
@@ -764,6 +765,27 @@ window.onload = function() {
     loadFromLocalStorage();
     formatPercent(document.getElementById('battSoc'), false);
     formatPercent(document.getElementById('battDod'), false);
+    
+    // مراقبة وحماية المدخلات الرقمية القياسية
+    ['singleAh', 'battCount', 'loadWatts', 'invCons'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.addEventListener('input', function() {
+                // تحويل الأرقام المشرقية
+                let raw = this.value.replace(/[٠-٩]/g, d => "0123456789"["٠١٢٣٤٥٦٧٨٩".indexOf(d)]);
+                // تقييد الحقل بـ 7 أرقام كحد أقصى ومنع الرموز الغريبة
+                let val = raw.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').substring(0, 7);
+                if (val.startsWith('.')) val = '0' + val;
+                // إزالة الأصفار على اليسار
+                if (val.length > 1 && val.startsWith('0') && !val.startsWith('0.')) {
+                    val = val.replace(/^0+/, '');
+                }
+                this.value = val;
+                calculateRuntime();
+            });
+        }
+    });
+
     calculateRuntime();
     updateVisitorCount();
 };
