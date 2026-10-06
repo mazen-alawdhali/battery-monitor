@@ -137,9 +137,7 @@
     <!-- قسم إخلاء المسؤولية -->
     <div class="content-section">
         <div class="section-title" id="sec3Title">⚠️ تنبيه وإخلاء مسؤولية قانونية</div>
-        <div class="text-block" id="sec3Text">
-            تعتبر مخرجات هذه الحاسبة نموذج محاكاة تقديري للمساعدة في التخطيط الأولي للمنظومة الشمسية. للحصول على أداء ميداني مضمون وتفادي فواقد التركيب، يُنصح دائماً بمراجعة التقييم النهائي مع مهندس أو فني طاقة شمسية مختص.
-        </div>
+        <div class="text-block" id="sec3Text">💡 <strong>تنبيه هام:</strong> هذه الحسابات <strong>تقديرية</strong> وتعتمد على كفاءة الإنفرتر، عمر البطارية، وحالتها الفعليّة (SoH). صُممت الحاسبة لمساعدة الفنيين والمستخدمين في التقدير الميداني لزمن التفريغ ومستويات الشحن الآمنة. يُوصى بعدم تفريغ البطاريات لأقل من حد الأمان الموصى به مصنعياً لحمايتها من التلف، مع ضرورة استشارة مهندس أو فني متخصص.</div>
     </div>
 
     <!-- بطاقة المطور -->
@@ -180,7 +178,7 @@ const i18n = {
             '<strong>واجهة ثنائية اللغة (عربي / إنجليزي):</strong> دعم كامل ومباشر للغتين العربية والإنجليزية لتوفير تجربة استخدام مرنة واحترافية للمهندسين والفنيين.'
         ],
         sec3Title: '⚠️ تنبيه وإخلاء مسؤولية قانونية',
-        sec3Text: 'تعتبر مخرجات هذه الحاسبة نموذج محاكاة تقديري للمساعدة في التخطيط الأولي للمنظومة الشمسية. للحصول على أداء ميداني مضمون وتفادي فواقد التركيب، يُنصح دائماً بمراجعة التقييم النهائي مع مهندس أو فني طاقة شمسية مختص.',
+        sec3Text: '💡 <strong>تنبيه هام:</strong> هذه الحسابات <strong>تقديرية</strong> وتعتمد على كفاءة الإنفرتر، عمر البطارية، وحالتها الفعليّة (SoH). صُممت الحاسبة لمساعدة الفنيين والمستخدمين في التقدير الميداني لزمن التفريغ ومستويات الشحن الآمنة. يُوصى بعدم تفريغ البطاريات لأقل من حد الأمان الموصى به مصنعياً لحمايتها من التلف، مع ضرورة استشارة مهندس أو فني متخصص.',
         sec4Title: '👨‍💻 التطوير وحقوق الملكية',
         devLabel: 'تم التصميم والتطوير بواسطة:',
         devName: 'م. مازن العوذلي',
@@ -203,7 +201,7 @@ const i18n = {
             '<strong>Bilingual Interface (Arabic / English):</strong> Direct support for Arabic and English providing a flexible, professional user experience for engineers and technicians.'
         ],
         sec3Title: '⚠️ Engineering Disclaimer',
-        sec3Text: 'The outputs of this calculator serve as an estimated simulation model for initial planning. Users are advised to review final designs with a certified solar engineer.',
+        sec3Text: '💡 <strong>Important Note:</strong> These calculations are <strong>estimated</strong> based on inverter efficiency, battery age, and State of Health (SoH). Designed to assist technicians and users in estimating runtime and safe discharge limits. Always observe manufacturer discharge limits and consult a qualified specialist.',
         sec4Title: '👨‍💻 Developer & Copyright',
         devLabel: 'Designed & Developed by:',
         devName: 'Eng. Mazen Al-Awdhali',
@@ -240,7 +238,7 @@ function applyLanguage() {
     });
 
     document.getElementById('sec3Title').innerText = data.sec3Title;
-    document.getElementById('sec3Text').innerText = data.sec3Text;
+    document.getElementById('sec3Text').innerHTML = data.sec3Text;
     document.getElementById('sec4Title').innerText = data.sec4Title;
     document.getElementById('devLabel').innerText = data.devLabel;
     document.querySelector('.dev-name').innerText = data.devName;
