@@ -190,7 +190,7 @@
                 00 <span class="time-unit" id="unitMins">دقيقة</span>
             </div>
         </div>
-        <div class="battery-note-box" id="batteryNoteMsg">
+        <div class="battery-note-box" id="batteryNoteMsg" style="display: none;">
             💡 <b>تنبيه هام:</b> هذه الحسابات <b>تقديرية</b> وتعتمد على كفاءة الإنفرتر، عمر البطارية، وحالتها الفعليّة (SoH). يُوصى بعدم تفريغ البطارية لأقل من حد الأمان الموصى به مصنعياً لحمايتها من التلف.
         </div>
     </div>
@@ -727,7 +727,7 @@ function calculateRuntime() {
     const displayElement = document.getElementById('displayTime');
     const langData = i18n[currentLang];
     
-    saveToLocalStorage();
+    saveToLocalStorage();     const noteBox = document.getElementById('batteryNoteMsg');     if (noteBox) {         noteBox.style.display = (totalLoadOnBattery <= 0 || totalWh <= 0 || usableSoc <= 0) ? 'none' : 'block';     }
 
     if (totalLoadOnBattery <= 0 || totalWh <= 0 || usableSoc <= 0) {
         displayElement.innerHTML = `00 <span class="time-unit">${langData.unitHours}</span> 00 <span class="time-unit">${langData.unitMins}</span>`;
