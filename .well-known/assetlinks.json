@@ -1,10 +1,17 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.mazen.Battery.Monitor.Pro",
-      "sha256_cert_fingerprints": ["F6:C2:46:FB:1F:3B:9E:56:9E:EC:27:E8:41:52:04:53:D6:67:FA:65:B6:2F:7E:A3:8C:86:C5:37:AC:64:1A:CB"]
+      "sha256_cert_fingerprints": [
+        "F6:C2:46:FB:1F:3B:9E:56:9E:EC:27:E8:41:52:04:53:D6:67:FA:65:B6:2F:7E:A3:8C:86:C5:37:AC:64:1A:CB",
+        "51:8D:8B:35:98:5C:27:6B:7F:A1:AF:6D:CD:DB:8C:77:7C:A9:43:4F:07:E8:58:78:F2:8F:04:5E:49:85:28:94",
+        "AC:7B:A8:05:F3:19:A0:73:5C:F4:36:C8:86:C0:E5:DF:32:6D:C2:52:8D:BB:18:DD:99:5A:F6:BE:E4:27:E4:1C"
+      ]
     }
   }
 ]
